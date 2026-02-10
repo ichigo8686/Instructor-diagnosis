@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>あなたはどんなインストラクター？診断ツール</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Hiragino Kaku Gothic ProN', 'Meiryo', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .container {
+            max-width: 700px;
+            width: 100%;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            padding: 40px;
+        }
+
+        h1 {
+            color: #667eea;
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .start-screen, .question-screen, .result-screen {
+            display: none;
+        }
+
+        .start-screen.active, .question-screen.active, .result-screen.active {
+            display: block;
+        }
+
+        .start-content {
+            text-align: center;
+        }
+
+        .start-content p {
+            margin-bottom: 30px;
+            color: #555;
+            line-height: 1.8;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 30px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            font-weight: bold;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e0e0e0;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            transition: width 0.3s ease;
+            border-radius: 10px;
+        }
+
+        .question-number {
+            color: #667eea;
+            font-weight: bold;
+            margin-bottom: 15px;
+            font-size: 14px;
+        }
+
+        .question-text {
+            font-size: 20px;
+            color: #333;
+            margin-bottom: 25px;
+            line-height: 1.6;
+            font-weight: 500;
+        }
+
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .option {
+            background: #f8f9fa;
+            border: 2px solid #e0e0e0;
+            padding: 18px 20px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 15px;
+            color: #333;
+        }
+
+        .option:hover {
+            border-color: #667eea;
+            background: #f0f4ff;
+            transform: translateX(5px);
+        }
+
+        .result-screen {
+            text-align: center;
+        }
+
+        .result-type {
+            font-size: 32px;
+            color: #667eea;
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+
+        .result-description {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            line-height: 1.8;
+            color: #555;
+            text-align: left;
+        }
+
+        .result-description h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+
+        .result-description p {
+            margin-bottom: 15px;
+        }
+
+        .result-description ul {
+            list-style-position: inside;
+            margin-left: 10px;
+        }
+
+        .result-description li {
+            margin-bottom: 8px;
+        }
+
+        .restart-btn {
+            margin-top: 20px;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 25px;
+            }
+
+            h1 {
+                font-size: 24px;
+            }
+
+            .question-text {
+                font-size: 18px;
+            }
+
+            .option {
+                padding: 15px;
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>✈️ あなたはどんなインストラクター？</h1>
+        <p class="subtitle">10問の質問で診断します</p>
+
+        <!-- スタート画面 -->
+        <div class="start-screen active">
+            <div class="start-content">
+                <p>
+                    この診断では、あなたの指導スタイルやアプローチから、<br>
+                    あなたがどんなタイプのインストラクターなのかを診断します。<br><br>
+                    10個の質問に答えてください。
+                </p>
+                <button class="btn" onclick="startQuiz()">診断スタート</button>
+            </div>
+        </div>
+
+        <!-- 質問画面 -->
+        <div class="question-screen">
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+            <div class="question-number" id="questionNumber"></div>
+            <div class="question-text" id="questionText"></div>
+            <div class="options" id="options"></div>
+        </div>
+
+        <!-- 結果画面 -->
+        <div class="result-screen">
+            <div class="result-type" id="resultType"></div>
+            <div class="result-description" id="resultDescription"></div>
+            <button class="btn restart-btn" onclick="restartQuiz()">もう一度診断する</button>
+        </div>
+    </div>
+
+    <script>
+        const questions = [
+            {
+                question: "訓練生が理解できないとき、あなたはどうしますか？",
+                options: [
+                    { text: "別の説明方法を複数試してみる", type: "adaptable" },
+                    { text: "基礎から丁寧に順を追って教え直す", type: "systematic" },
+                    { text: "一緒に考えて答えを導き出す", type: "collaborative" },
+                    { text: "実例やストーリーで説明する", type: "inspiring" }
+                ]
+            },
+            {
+                question: "カリキュラムの準備で最も重視することは？",
+                options: [
+                    { text: "訓練生のレベルに合わせた柔軟な内容", type: "adaptable" },
+                    { text: "論理的で体系的なカリキュラム", type: "systematic" },
+                    { text: "参加型のアクティビティ", type: "collaborative" },
+                    { text: "モチベーションを高める工夫", type: "inspiring" }
+                ]
+            },
+            {
+                question: "訓練生からの質問にはどう対応しますか？",
+                options: [
+                    { text: "その場で最適な答え方を考える", type: "adaptable" },
+                    { text: "理論や原則に基づいて説明する", type: "systematic" },
+                    { text: "他の訓練生も巻き込んで議論する", type: "collaborative" },
+                    { text: "質問を褒めて、好奇心を育てる", type: "inspiring" }
+                ]
+            },
+            {
+                question: "あなたの強みは何だと思いますか？",
+                options: [
+                    { text: "臨機応変な対応力", type: "adaptable" },
+                    { text: "論理的な説明力", type: "systematic" },
+                    { text: "コミュニケーション能力", type: "collaborative" },
+                    { text: "人を動かす熱意", type: "inspiring" }
+                ]
+            },
+            {
+                question: "理想的なカリキュラムの雰囲気は？",
+                options: [
+                    { text: "自由で変化に富んだ空気", type: "adaptable" },
+                    { text: "落ち着いて集中できる環境", type: "systematic" },
+                    { text: "みんなで協力し合う雰囲気", type: "collaborative" },
+                    { text: "エネルギッシュで前向きな空気", type: "inspiring" }
+                ]
+            },
+            {
+                question: "訓練生の成長をどう測りますか？",
+                options: [
+                    { text: "個々の進歩を個別に見る", type: "adaptable" },
+                    { text: "明確な基準や目標達成度", type: "systematic" },
+                    { text: "チーム全体の成長", type: "collaborative" },
+                    { text: "自信やモチベーションの変化", type: "inspiring" }
+                ]
+            },
+            {
+                question: "難しい内容を教えるとき、どうアプローチしますか？",
+                options: [
+                    { text: "訓練生の反応を見ながら調整する", type: "adaptable" },
+                    { text: "ステップを細かく分けて教える", type: "systematic" },
+                    { text: "グループワークで学ばせる", type: "collaborative" },
+                    { text: "達成感を感じられるよう工夫する", type: "inspiring" }
+                ]
+            },
+            {
+                question: "カリキュラム後のフォローアップでは？",
+                options: [
+                    { text: "個別にカスタマイズした助言", type: "adaptable" },
+                    { text: "次のステップを明確に示す", type: "systematic" },
+                    { text: "仲間同士で教え合うよう促す", type: "collaborative" },
+                    { text: "成功体験を共有して励ます", type: "inspiring" }
+                ]
+            },
+            {
+                question: "訓練生のモチベーションが下がっているとき、どう対応しますか？",
+                options: [
+                    { text: "個別に話を聞いて原因を探る", type: "adaptable" },
+                    { text: "目標を再確認し、計画を見直す", type: "systematic" },
+                    { text: "仲間と励まし合える場を作る", type: "collaborative" },
+                    { text: "成功体験を思い出させて前向きにする", type: "inspiring" }
+                ]
+            },
+            {
+                question: "インストラクターとして大切にしている価値観は？",
+                options: [
+                    { text: "一人ひとりに寄り添うこと", type: "adaptable" },
+                    { text: "確実なスキル習得", type: "systematic" },
+                    { text: "共に学び成長すること", type: "collaborative" },
+                    { text: "夢や可能性を信じること", type: "inspiring" }
+                ]
+            }
+        ];
+
+        const results = {
+            adaptable: {
+                type: "フレキシブル型インストラクター",
+                description: `
+                    <h3>🎨 あなたの特徴</h3>
+                    <p>状況に応じて柔軟に対応できる、アダプティブなインストラクターです。一人ひとりの個性や学習スタイルを尊重し、その場に最適な指導方法を見つけ出す力があります。</p>
+                    
+                    <h3>💪 強み</h3>
+                    <ul>
+                        <li>訓練生の反応を敏感に察知できる</li>
+                        <li>多様な教え方を持っている</li>
+                        <li>予期せぬ状況にも冷静に対処できる</li>
+                        <li>個別対応が得意</li>
+                    </ul>
+
+                    <h3>🌟 アドバイス</h3>
+                    <p>柔軟性は素晴らしい強みですが、時には一貫した構造も必要です。基本的なカリキュラムの軸を持ちつつ、その中で柔軟に対応するバランスを意識してみましょう。</p>
+                `
+            },
+            systematic: {
+                type: "ロジカル型インストラクター",
+                description: `
+                    <h3>📚 あなたの特徴</h3>
+                    <p>論理的で体系的なアプローチを得意とするインストラクターです。明確な目標設定と段階的な学習プランで、訓練生を着実に成長へと導きます。</p>
+                    
+                    <h3>💪 強み</h3>
+                    <ul>
+                        <li>わかりやすく整理された説明ができる</li>
+                        <li>目標達成までの道筋が明確</li>
+                        <li>基礎を大切にした指導</li>
+                        <li>再現性の高いメソッドを持っている</li>
+                    </ul>
+
+                    <h3>🌟 アドバイス</h3>
+                    <p>体系的なアプローチは効果的ですが、時には感情面のサポートや個別の事情への配慮も大切です。計画と柔軟性のバランスを取ることで、さらに効果的な指導ができるでしょう。</p>
+                `
+            },
+            collaborative: {
+                type: "チームビルダー型インストラクター",
+                description: `
+                    <h3>🤝 あなたの特徴</h3>
+                    <p>協働と対話を重視するインストラクターです。訓練生同士の学び合いを促進し、コミュニティ全体を成長させる力を持っています。</p>
+                    
+                    <h3>💪 強み</h3>
+                    <ul>
+                        <li>良好な関係性を築くのが上手</li>
+                        <li>グループダイナミクスを活かせる</li>
+                        <li>多様な視点を引き出せる</li>
+                        <li>安心して学べる環境を作れる</li>
+                    </ul>
+
+                    <h3>🌟 アドバイス</h3>
+                    <p>協働的な学びは素晴らしいですが、個別のサポートが必要な訓練生もいます。グループ活動と個別指導のバランスを意識し、全員が成長できる環境を作りましょう。</p>
+                `
+            },
+            inspiring: {
+                type: "モチベーター型インストラクター",
+                description: `
+                    <h3>✨ あなたの特徴</h3>
+                    <p>熱意と情熱で人を動かすインストラクターです。訓練生の可能性を信じ、内なるモチベーションを引き出すことで、大きな変化を生み出します。</p>
+                    
+                    <h3>💪 強み</h3>
+                    <ul>
+                        <li>人を励まし、勇気づけられる</li>
+                        <li>ポジティブなエネルギーを与えられる</li>
+                        <li>夢や目標を持たせるのが上手</li>
+                        <li>変化への第一歩を後押しできる</li>
+                    </ul>
+
+                    <h3>🌟 アドバイス</h3>
+                    <p>モチベーションは学びの原動力ですが、具体的なスキルやテクニックの指導も大切です。インスピレーションと実践的な指導のバランスを取ることで、より深い成長をサポートできるでしょう。</p>
+                `
+            }
+        };
+
+        let currentQuestion = 0;
+        let scores = {
+            adaptable: 0,
+            systematic: 0,
+            collaborative: 0,
+            inspiring: 0
+        };
+
+        function startQuiz() {
+            document.querySelector('.start-screen').classList.remove('active');
+            document.querySelector('.question-screen').classList.add('active');
+            showQuestion();
+        }
+
+        function showQuestion() {
+            const question = questions[currentQuestion];
+            const progress = ((currentQuestion + 1) / questions.length) * 100;
+            
+            document.getElementById('progressFill').style.width = progress + '%';
+            document.getElementById('questionNumber').textContent = `質問 ${currentQuestion + 1} / ${questions.length}`;
+            document.getElementById('questionText').textContent = question.question;
+            
+            const optionsHtml = question.options.map((option, index) => 
+                `<div class="option" onclick="selectOption('${option.type}')">${option.text}</div>`
+            ).join('');
+            
+            document.getElementById('options').innerHTML = optionsHtml;
+        }
+
+        function selectOption(type) {
+            scores[type]++;
+            currentQuestion++;
+            
+            if (currentQuestion < questions.length) {
+                showQuestion();
+            } else {
+                showResult();
+            }
+        }
+
+        function showResult() {
+            const maxScore = Math.max(...Object.values(scores));
+            const resultType = Object.keys(scores).find(key => scores[key] === maxScore);
+            const result = results[resultType];
+            
+            document.querySelector('.question-screen').classList.remove('active');
+            document.querySelector('.result-screen').classList.add('active');
+            
+            document.getElementById('resultType').textContent = result.type;
+            document.getElementById('resultDescription').innerHTML = result.description;
+        }
+
+        function restartQuiz() {
+            currentQuestion = 0;
+            scores = {
+                adaptable: 0,
+                systematic: 0,
+                collaborative: 0,
+                inspiring: 0
+            };
+            
+            document.querySelector('.result-screen').classList.remove('active');
+            document.querySelector('.start-screen').classList.add('active');
+        }
+    </script>
+</body>
+</html>
